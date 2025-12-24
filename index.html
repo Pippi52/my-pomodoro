@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>清爽番茄鐘 - 晨露森林</title>
+    <!-- Favicon 視覺圖示 (與桌面圖示設計一致) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%2382937D'/><path d='M50 25 L50 50 L70 50' stroke='white' stroke-width='8' stroke-linecap='round' fill='none'/><path d='M35 75 Q50 90 65 75' stroke='%234A5D4E' stroke-width='6' stroke-linecap='round' fill='none'/><circle cx='50' cy='50' r='40' stroke='white' stroke-width='4' fill='none' stroke-dasharray='5,10' opacity='0.3'/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        :root {
+            --forest-clear: #4A5D4E;   
+            --sage-fresh: #82937D;     
+            --mist-dark: #60685E;      
+            --dew-white: #F7F9F7;      
+            --card-pure: #FFFFFF;      
+            --text-main: #4A5049;      
+        }
+
+        body {
+            font-family: 'Noto+Sans+TC', sans-serif;
+            background-color: var(--dew-white);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden;
+            color: var(--text-main);
+            user-select: none;
+        }
+
+        .main-container {
+            background-color: var(--card-pure);
+            width: 350px;
+            padding: 3rem 2rem;
+            border-radius: 3.5rem;
+            box-shadow: 
+                0 15px 35px rgba(74, 93, 78, 0.05),
+                0 5px 15px rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(226, 232, 225, 0.6);
+            text-align: center;
+            position: relative;
+        }
+
+        .timer-font {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.5rem; 
+            font-weight: 300;  
+            color: var(--forest-clear);
+            letter-spacing: 1px; 
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .progress-circle {
+            transition: stroke-dashoffset 0.3s linear;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .action-btn {
+            background-color: var(--sage-fresh);
+            color: #FFFFFF;
+            padding: 0.8rem 3rem;
+            border-radius: 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 20px rgba(130, 147, 125, 0.2);
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            letter-spacing: 1px;
+        }
+
+        .action-btn:hover {
+            background-color: var(--forest-clear);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(74, 93, 78, 0.2);
+        }
+
+        .reset-btn {
+            background: transparent;
+            color: var(--mist-dark);
+            font-size: 0.75rem;
+            margin-top: 1rem;
+            border: none;
+            cursor: pointer;
+            opacity: 0.85;
+            transition: all 0.2s;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .reset-btn:hover {
+            opacity: 1;
+            color: var(--forest-clear);
+            text-decoration: underline;
+        }
+
+        .status-tag {
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.4em;
+            color: var(--mist-dark);
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+        }
+
+        .settings-container {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px dashed rgba(130, 147, 125, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--mist-dark);
+            font-weight: 500;
+        }
+
+        .time-input {
+            width: 45px;
+            background: var(--dew-white);
+            border: 1px solid rgba(130, 147, 125, 0.2);
+            border-radius: 0.5rem;
+            padding: 0.3rem;
+            text-align: center;
+            font-family: 'Outfit', sans-serif;
+            color: var(--forest-clear);
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .time-input:focus {
+            border-color: var(--sage-fresh);
+        }
+
+        .alarm-blink {
+            animation: soft-blink 1s infinite alternate;
+        }
+
+        @keyframes soft-blink {
+            from { opacity: 1; }
+            to { opacity: 0.3; color: var(--sage-fresh); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <div id="statusLabel" class="status-tag">Ready to start</div>
+    
+    <div class="relative flex items-center justify-center mb-6">
+        <svg width="220" height="220">
+            <circle
+                stroke="#EEF2EE"
+                stroke-width="5"
+                fill="transparent"
+                r="100"
+                cx="110"
+                cy="110"
+            />
+            <circle
+                id="progressBar"
+                class="progress-circle"
+                stroke="var(--sage-fresh)"
+                stroke-width="8"
+                stroke-dasharray="628.3"
+                stroke-dashoffset="0"
+                stroke-linecap="round"
+                fill="transparent"
+                r="100"
+                cx="110"
+                cy="110"
+            />
+        </svg>
+        <div class="absolute">
+            <div id="timerDisplay" class="timer-font">02:00</div>
+        </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+        <button id="startBtn" class="action-btn">開始專注</button>
+        <button id="resetBtn" class="reset-btn">RESET TIMER</button>
+    </div>
+
+    <!-- 新增：自訂時間區塊 -->
+    <div class="settings-container" id="settingsArea">
+        <div class="input-group">
+            <span>設定時間：</span>
+            <input type="number" id="inputMin" class="time-input" value="2" min="0" max="999">
+            <span>分</span>
+            <input type="number" id="inputSec" class="time-input" value="0" min="0" max="59">
+            <span>秒</span>
+        </div>
+    </div>
+
+    <div class="mt-8 text-[8px] text-[var(--mist-dark)] opacity-90 tracking-[0.5em] uppercase font-bold">
+        Balance • Focus • Nature
+    </div>
+</div>
+
+<script>
+    // 核心變數
+    let totalTime = 120; 
+    let timeLeft = totalTime;
+    let timerId = null;
+    let alarmIntervalId = null;
+    const circumference = 100 * 2 * Math.PI;
+    
+    // 音訊變數
+    let audioContext = null;
+    let activeOscillators = [];
+    let isAlarming = false;
+
+    // DOM 元素
+    const display = document.getElementById('timerDisplay');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const progressBar = document.getElementById('progressBar');
+    const statusLabel = document.getElementById('statusLabel');
+    const inputMin = document.getElementById('inputMin');
+    const inputSec = document.getElementById('inputSec');
+    const settingsArea = document.getElementById('settingsArea');
+
+    // 播放單次鐘聲
+    function playSingleBell() {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        const now = audioContext.currentTime;
+        const playTone = (freq, startTime, duration, volume) => {
+            const osc = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, startTime);
+            osc.frequency.exponentialRampToValueAtTime(freq * 0.98, startTime + duration);
+            gainNode.gain.setValueAtTime(0, startTime);
+            gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+            osc.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+            activeOscillators.push(osc);
+            osc.onended = () => {
+                activeOscillators = activeOscillators.filter(item => item !== osc);
+            };
+        };
+        playTone(523.25, now, 4, 0.4);      
+        playTone(783.99, now + 0.1, 4, 0.2); 
+        playTone(1046.50, now + 0.2, 3, 0.1); 
+    }
+
+    function startContinuousAlarm() {
+        isAlarming = true;
+        playSingleBell();
+        alarmIntervalId = setInterval(playSingleBell, 4500);
+    }
+
+    function stopAlarmSound() {
+        if (alarmIntervalId) {
+            clearInterval(alarmIntervalId);
+            alarmIntervalId = null;
+        }
+        activeOscillators.forEach(osc => {
+            try { osc.stop(); } catch (e) {}
+        });
+        activeOscillators = [];
+        isAlarming = false;
+    }
+
+    function updateUI() {
+        const mins = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
+        display.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        
+        // 動態計算進度條位置 (百分比)
+        const progress = timeLeft / totalTime;
+        const offset = circumference - progress * circumference;
+        progressBar.style.strokeDashoffset = isNaN(offset) ? 0 : offset;
+    }
+
+    // 更新自訂時間
+    function updateCustomTime() {
+        if (timerId || isAlarming) return; // 運行中不更改設定
+        
+        const m = parseInt(inputMin.value) || 0;
+        const s = parseInt(inputSec.value) || 0;
+        totalTime = (m * 60) + s;
+        if (totalTime < 1) totalTime = 1; // 最少 1 秒
+        timeLeft = totalTime;
+        updateUI();
+    }
+
+    function toggleTimer() {
+        if (isAlarming) {
+            stopAlarmSound();
+            resetTimer();
+            return;
+        }
+
+        if (timerId) {
+            // 暫停
+            clearInterval(timerId);
+            timerId = null;
+            startBtn.textContent = '繼續專注';
+            statusLabel.textContent = 'Paused';
+            display.classList.remove('alarm-blink');
+            settingsArea.style.opacity = "1";
+        } else {
+            // 開始前確認時間
+            updateCustomTime();
+            
+            statusLabel.textContent = 'Focusing';
+            startBtn.textContent = '暫停計時';
+            display.classList.remove('alarm-blink');
+            settingsArea.style.opacity = "0.3"; // 計時中淡化設定區
+            
+            timerId = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    timeLeft = 0;
+                    clearInterval(timerId);
+                    timerId = null;
+                    startContinuousAlarm();
+                    statusLabel.textContent = "Time's Up!";
+                    startBtn.textContent = '停止鈴響';
+                    display.classList.add('alarm-blink');
+                }
+                updateUI();
+            }, 1000);
+        }
+    }
+
+    function resetTimer() {
+        if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+        }
+        stopAlarmSound();
+        updateCustomTime(); // 根據輸入框重置
+        startBtn.textContent = '開始專注';
+        statusLabel.textContent = 'Ready to start';
+        display.classList.remove('alarm-blink');
+        settingsArea.style.opacity = "1";
+    }
+
+    // 事件監聽
+    startBtn.addEventListener('click', toggleTimer);
+    resetBtn.addEventListener('click', resetTimer);
+    inputMin.addEventListener('input', updateCustomTime);
+    inputSec.addEventListener('input', updateCustomTime);
+
+    // 初始化
+    updateUI();
+</script>
+
+</body>
+</html>
